@@ -1,5 +1,6 @@
 #include "benchmark.h"
 #include <stdio.h>
+
 __global__ 
 void multGPU(vector_t* pvector_in, matrix_t* pmatrix, vector_t* pvector_out)
 {
@@ -20,6 +21,7 @@ void clearMemory(vector_t* &input, matrix_t* &matrix, vector_t* &output);
 void singleCpuThreadExecution(vector_t* &input, matrix_t* &matrix, vector_t* &output);
 void multiCpuThreadExecution(vector_t* &input, matrix_t* &matrix, vector_t* &output);
 void gpuExceution(vector_t* &input, matrix_t* &matrix, vector_t* &output);
+void printError(vector_t* &vector, float should, const char* const name);
 
 int main()
 {    
@@ -30,9 +32,11 @@ int main()
     initalisation(input, matrix, output);
 
     gpuExceution(input, matrix, output);
+    printError(output, OUTPUT_LENGTH, "GPU");
     multiCpuThreadExecution(input, matrix, output);  
+    printError(output, OUTPUT_LENGTH, "CPU multi thread");
     singleCpuThreadExecution(input, matrix, output);
-
+    printError(output, OUTPUT_LENGTH, "CPU single thread");
     clearMemory(input, matrix, output);
      
     return 0;
@@ -45,7 +49,6 @@ void initalisation(vector_t* &input, matrix_t* &matrix, vector_t* &output)
     output = initVectorOnCPU(OUTPUT_LENGTH);
 
     setMatrixValues(matrix);
-    setInputValues(input);
 }
 
 void clearMemory(vector_t* &input, matrix_t* &matrix, vector_t* &output)
@@ -57,6 +60,7 @@ void clearMemory(vector_t* &input, matrix_t* &matrix, vector_t* &output)
 
 void singleCpuThreadExecution(vector_t* &input, matrix_t* &matrix, vector_t* &output)
 {
+    setInputValues(input);
     clock_t start = clock();
     multSingleThreadCPU(input, matrix, output);
     clock_t fin = clock();
@@ -66,6 +70,7 @@ void singleCpuThreadExecution(vector_t* &input, matrix_t* &matrix, vector_t* &ou
 
 void multiCpuThreadExecution(vector_t* &input, matrix_t* &matrix, vector_t* &output)
 {
+    setInputValues(input);
     clock_t start = clock();
     multCPU(input, matrix, output);
     clock_t fin = clock();
@@ -75,6 +80,7 @@ void multiCpuThreadExecution(vector_t* &input, matrix_t* &matrix, vector_t* &out
 
 void gpuExceution(vector_t* &input, matrix_t* &matrix, vector_t* &output)
 {
+    setInputValues(input);
     matrix = moveMatrixToGPU(matrix);
     input = moveVectorToGPU(input);
     output = moveVectorToGPU(output);
@@ -88,4 +94,15 @@ void gpuExceution(vector_t* &input, matrix_t* &matrix, vector_t* &output)
     output = moveVectorToCPU(output);
 
     printf("%.3Fms GPU time\n",1000. * (double)(fin - start) / (double)CLOCKS_PER_SEC);
+}
+
+void printError(vector_t* &vector, float should, const char* const name)
+{
+    float error = 0;
+    for (int i = 0; i < vector->collums; i++)
+    {
+        error = max(error, abs(vector->data[i] - should));
+    }
+    
+    printf("Max %s error: %f\n",name, error);
 }

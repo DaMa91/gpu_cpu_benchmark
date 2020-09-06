@@ -39,7 +39,7 @@ void setMatrixValues(matrix_t* matrix)
 {
     for(int i = 0; i < matrix->dataLength; i++)
     {
-        matrix->data[i] = (float)matrix->dataLength / (float)(i + 1);
+        matrix->data[i] = /*(float)matrix->dataLength / (float)(i + 1)*/ 1.f;
     }
 }
 
@@ -47,7 +47,7 @@ void setInputValues(vector_t* input)
 {
     for(int i = 0; i < input->collums; i++)
     {
-        input->data[i] = (float) i;
+        input->data[i] = /*(float) i*/ 1.f;
     }
 }
 
